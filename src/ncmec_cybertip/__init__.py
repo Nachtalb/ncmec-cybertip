@@ -38,6 +38,7 @@ from .files import (
     FileDetails,
     NameValuePair,
     OriginalFileHash,
+    file_hashes,
 )
 from .report import (
     AssociatedAccount,
@@ -114,4 +115,5 @@ __all__ = [
     "ResponseCode",
     "Victim",
     "WebPageIncident",
+    "file_hashes",
 ]

@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+import hashlib
+from collections.abc import Iterable
 from datetime import datetime
+from pathlib import Path
+from typing import BinaryIO
 
 from pydantic_xml import attr, element
 
 from ._flag import Flag
 from .common import Base, DeviceId, IpCaptureEvent
 from .enums import DetailsType, FileRelevance, IndustryClassification
+
+# Canonical hashType labels for the stdlib algorithms NCMEC commonly expects.
+_HASH_TYPE_NAMES = {"md5": "MD5", "sha1": "SHA1", "sha256": "SHA256"}
 
 
 class FileAnnotations(Base, tag="fileAnnotations"):
@@ -33,6 +40,46 @@ class OriginalFileHash(Base, tag="originalFileHash"):
 
     value: str
     hash_type: str = attr(name="hashType", max_length=64)
+
+    @classmethod
+    def compute(cls, data: bytes, algorithm: str = "md5") -> OriginalFileHash:
+        """Build an ``OriginalFileHash`` for ``data`` using a stdlib algorithm.
+
+        Args:
+            data: The file bytes to hash.
+            algorithm: A :mod:`hashlib` algorithm name (e.g. ``"md5"``,
+                ``"sha1"``, ``"sha256"``). The ``hashType`` label is the
+                conventional upper-case form (``MD5``/``SHA1``/``SHA256``) for
+                known algorithms, otherwise the algorithm name upper-cased.
+        """
+        digest = hashlib.new(algorithm, data).hexdigest()
+        hash_type = _HASH_TYPE_NAMES.get(algorithm.lower(), algorithm.upper())
+        return cls(value=digest, hash_type=hash_type)
+
+
+def file_hashes(
+    source: bytes | str | Path | BinaryIO,
+    algorithms: Iterable[str] = ("md5", "sha1", "sha256"),
+) -> list[OriginalFileHash]:
+    """Compute ``OriginalFileHash`` entries for a file, using the standard library.
+
+    Args:
+        source: The file to hash -- a path, raw ``bytes``, or an open binary
+            file object (read in full).
+        algorithms: :mod:`hashlib` algorithm names to compute. Defaults to
+            MD5, SHA1, and SHA256.
+
+    Returns:
+        One :class:`OriginalFileHash` per algorithm, ready to assign to
+        ``FileDetails.original_file_hash``.
+    """
+    if isinstance(source, (str, Path)):
+        data = Path(source).read_bytes()
+    elif isinstance(source, bytes):
+        data = source
+    else:
+        data = source.read()
+    return [OriginalFileHash.compute(data, algorithm) for algorithm in algorithms]
 
 
 class NameValuePair(Base, tag="nameValuePair"):

@@ -43,15 +43,24 @@ from datetime import datetime, timezone
 
 from ncmec_cybertip import (
     CyberTiplineClient,
+    Details,
     Email,
+    EventName,
+    FileAnnotations,
+    FileDetails,
+    FileRelevance,
     IncidentSummary,
     IncidentType,
     InternetDetails,
+    IpCaptureEvent,
+    NameValuePair,
+    OriginalFileHash,
     Person,
     Report,
     Reporter,
     TESTING_URL,
     WebPageIncident,
+    file_hashes,
 )
 
 
@@ -86,8 +95,39 @@ async def main() -> None:
         report_id = opened.report_id
 
         uploaded = await client.upload(report_id, "evidence.jpg")  # 2. add a file
+        file_id = uploaded.file_id
 
-        done = await client.finish(report_id)       # 3. finish (files it!)
+        # 3. optional: attach details/metadata for the uploaded file
+        details = FileDetails(
+            report_id=report_id,
+            file_id=file_id,
+            original_file_name="evidence.jpg",
+            file_relevance=FileRelevance.REPORTED,
+            file_viewed_by_esp=True,
+            exif_viewed_by_esp=True,
+            file_annotations=FileAnnotations(viral=True, generative_ai=True),
+            # Compute MD5 + SHA1 + SHA256 from the file with the standard library,
+            # or hand-build OriginalFileHash(value=..., hash_type=...) yourself.
+            original_file_hash=file_hashes("evidence.jpg"),
+            ip_capture_event=IpCaptureEvent(
+                ip_address="63.116.246.17",
+                event_name=EventName.UPLOAD,
+                date_time=datetime(2011, 10, 31, 12, tzinfo=timezone.utc),
+                port=443,
+            ),
+            details=[
+                Details(
+                    name_value_pair=[
+                        NameValuePair(name="Make", value="Canon"),
+                        NameValuePair(name="Model", value="EOS 5D"),
+                    ]
+                )
+            ],
+            additional_info=["File was originally posted with 6 others"],
+        )
+        await client.file_info(details)
+
+        done = await client.finish(report_id)       # 4. finish (files it!)
         print("Filed report", done.report_id, "with files", done.file_ids)
 
 
@@ -138,6 +178,27 @@ await client.upload(report_id, raw_bytes, filename="x") # bytes
 with open("photo.jpg", "rb") as fh:
     await client.upload(report_id, fh, filename="photo.jpg")
 ```
+
+## File hashes
+
+Original file hashes for `FileDetails` can be computed from the standard library
+(`hashlib`) or built by hand. `file_hashes()` accepts a path, `bytes`, or a
+binary file object and returns `OriginalFileHash` entries; it defaults to
+MD5 + SHA1 + SHA256:
+
+```python
+from ncmec_cybertip import OriginalFileHash, file_hashes
+
+details.original_file_hash = file_hashes("evidence.jpg")             # md5, sha1, sha256
+details.original_file_hash = file_hashes(raw_bytes, algorithms=["sha256"])
+
+# Single algorithm, or supply a precomputed digest yourself:
+OriginalFileHash.compute(raw_bytes, "sha1")
+OriginalFileHash(value="fafa5efeaf3cbe3b23b2748d13e629a1", hash_type="MD5")
+```
+
+The `hashType` label is the conventional upper-case form (`MD5`/`SHA1`/`SHA256`)
+for known algorithms; any other `hashlib` name is upper-cased.
 
 ## Bring your own httpx client
 
