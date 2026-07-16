@@ -271,6 +271,26 @@ NCMEC_PROD_USER=... NCMEC_PROD_PASS=... uv run pytest -m integration \
     tests/test_integration.py::test_status_live_prod
 ```
 
+## Releasing
+
+Releases are automated via GitHub Actions + PyPI Trusted Publishing (OIDC — no
+API tokens). To cut a release:
+
+1. Bump `version` in `pyproject.toml` (e.g. `0.1.0` -> `0.1.1`).
+   At the first stable release, also change the `Development Status` classifier
+   from `4 - Beta` to `5 - Production/Stable`.
+2. Commit, then push a matching tag:
+
+   ```bash
+   git tag v0.1.1
+   git push origin v0.1.1
+   ```
+
+The `Release` workflow then builds the sdist + wheel, verifies the tag matches
+the package version, publishes to PyPI, and creates a GitHub Release with
+generated notes and the built artifacts attached. A mismatch between the tag and
+`pyproject.toml` version fails the build before anything is published.
+
 ## Disclaimer
 
 This is an unofficial client and is not affiliated with or endorsed by NCMEC.
