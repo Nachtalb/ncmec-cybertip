@@ -200,6 +200,29 @@ OriginalFileHash(value="fafa5efeaf3cbe3b23b2748d13e629a1", hash_type="MD5")
 The `hashType` label is the conventional upper-case form (`MD5`/`SHA1`/`SHA256`)
 for known algorithms; any other `hashlib` name is upper-cased.
 
+## Industry classification
+
+Files may optionally carry an ESP-designated `IndustryClassification`
+(`A1`/`A2`/`B1`/`B2`), where the letter is the apparent age of the minor
+(A = prepubescent, B = pubescent) and the digit is the content rank
+(1 = sex act, 2 = lascivious exhibition):
+
+```python
+from ncmec_cybertip import FileDetails, FileRelevance, IndustryClassification
+
+details = FileDetails(
+    report_id=report_id,
+    file_id=file_id,
+    file_relevance=FileRelevance.REPORTED,
+    industry_classification=IndustryClassification.A1,
+)
+```
+
+Per the schema, only `Reported` content may be classified: setting an
+`industry_classification` (or a `potential_meme` annotation) on a
+`Supplemental Reported` file raises `ValidationError` locally, before it would
+be rejected by NCMEC at `/finish`.
+
 ## Bring your own httpx client
 
 Pass an existing `httpx.AsyncClient` (for custom transports, proxies, retries).

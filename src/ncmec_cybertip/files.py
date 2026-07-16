@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import BinaryIO
 
+from pydantic import model_validator
 from pydantic_xml import attr, element
 
 from ._flag import Flag
@@ -123,3 +124,29 @@ class FileDetails(Base, tag="fileDetails"):
     device_id: list[DeviceId] = element(default_factory=list)
     details: list[Details] = element(default_factory=list)
     additional_info: list[str] = element(tag="additionalInfo", default_factory=list)
+
+    @model_validator(mode="after")
+    def _check_supplemental_reported(self) -> FileDetails:
+        """Enforce the documented ``Supplemental Reported`` constraints.
+
+        A file with ``fileRelevance = Supplemental Reported`` may not also carry
+        a potential-meme annotation or an industry classification (only
+        "Reported" content may be classified or flagged as a potential meme).
+        """
+        if self.file_relevance is not FileRelevance.SUPPLEMENTAL_REPORTED:
+            return self
+        if self.industry_classification is not None:
+            msg = (
+                "industry_classification may not be set when file_relevance is "
+                "'Supplemental Reported'"
+            )
+            raise ValueError(msg)
+        if self.file_annotations is not None and (
+            self.file_annotations.potential_meme is not None
+        ):
+            msg = (
+                "potential_meme annotation may not be set when file_relevance is "
+                "'Supplemental Reported'"
+            )
+            raise ValueError(msg)
+        return self

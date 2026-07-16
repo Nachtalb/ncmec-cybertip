@@ -79,7 +79,24 @@ class FileRelevance(StrEnum):
 
 
 class IndustryClassification(StrEnum):
-    """ESP-designated categorisation scale (``<industryClassification>``)."""
+    """ESP-designated categorisation scale (``<industryClassification>``).
+
+    Created by various ESPs in January 2014 and updated June 2022. The letter
+    encodes the apparent age of the minor and the digit encodes the content rank:
+
+    * ``A1`` -- Prepubescent minor, Sex Act
+    * ``A2`` -- Prepubescent minor, Lascivious Exhibition
+    * ``B1`` -- Pubescent minor, Sex Act
+    * ``B2`` -- Pubescent minor, Lascivious Exhibition
+
+    Rank 1 (Sex Act): imagery depicting sexual intercourse (genital-genital,
+    oral-genital, anal-genital, or oral-anal), bestiality, masturbation, or
+    sadistic/masochistic abuse or degradation.
+
+    Rank 2 (Lascivious Exhibition): imagery depicting the lascivious exhibition
+    of the anus, genitals, or pubic area of a minor, intended or designed to
+    elicit a sexual response in the viewer.
+    """
 
     A1 = "A1"
     A2 = "A2"
