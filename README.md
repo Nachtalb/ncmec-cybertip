@@ -1,5 +1,7 @@
 # ncmec-cybertip
 
+[![CI](https://github.com/Nachtalb/ncmec-cybertip/actions/workflows/ci.yml/badge.svg)](https://github.com/Nachtalb/ncmec-cybertip/actions/workflows/ci.yml)
+
 A fully typed, async Python client for the **NCMEC CyberTipline Reporting API**
 (`ispws`), built on [`httpx`](https://www.python-httpx.org/) and
 [`pydantic-xml`](https://pydantic-xml.readthedocs.io/).
