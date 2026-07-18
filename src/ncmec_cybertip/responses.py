@@ -24,7 +24,7 @@ class ReportResponse(Base, tag="reportResponse"):
 class _Files(Base, tag="files"):
     """Wrapper for the list of file IDs in a done response."""
 
-    file_id: list[int] = element(tag="fileId", default_factory=list)
+    file_id: list[str] = element(tag="fileId", default_factory=list)
 
 
 class ReportDoneResponse(Base, tag="reportDoneResponse"):
@@ -35,6 +35,11 @@ class ReportDoneResponse(Base, tag="reportDoneResponse"):
     files: _Files = element(default_factory=_Files)
 
     @property
-    def file_ids(self) -> list[int]:
-        """The file IDs of files successfully uploaded to the finished report."""
+    def file_ids(self) -> list[str]:
+        """The file IDs of files successfully uploaded to the finished report.
+
+        NCMEC assigns each uploaded file a 32-char hex identifier (e.g.
+        ``3a1d4fd4106b82499b7c93442aa7dca4``) — these are opaque strings, not
+        integers.
+        """
         return self.files.file_id

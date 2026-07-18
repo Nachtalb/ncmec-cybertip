@@ -33,7 +33,7 @@ _OK_UPLOAD = (
 _OK_FINISH = (
     b"<reportDoneResponse><responseCode>0</responseCode>"
     b"<reportId>4564654</reportId>"
-    b"<files><fileId>1</fileId></files></reportDoneResponse>"
+    b"<files><fileId>b0754af766b426f2928a02c651ed4b99</fileId></files></reportDoneResponse>"
 )
 
 
@@ -130,7 +130,7 @@ async def test_finish() -> None:
     )
     async with _client() as client:
         done = await client.finish(4564654)
-    assert done.file_ids == [1]
+    assert done.file_ids == ["b0754af766b426f2928a02c651ed4b99"]
     assert b"id=4564654" in route.calls.last.request.content
 
 

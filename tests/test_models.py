@@ -252,15 +252,35 @@ def test_report_response_parses() -> None:
 
 
 def test_report_done_response_exposes_file_ids() -> None:
+    # NCMEC returns 32-char hex file IDs (opaque strings), not integers.
+    # Regression: report 250799407's real /finish response 502'd because these
+    # were previously typed as list[int]. This is the actual production payload.
     xml = (
+        b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         b"<reportDoneResponse><responseCode>0</responseCode>"
-        b"<reportId>4564654</reportId>"
-        b"<files><fileId>1</fileId><fileId>2</fileId></files>"
+        b"<reportId>250799407</reportId>"
+        b"<files>"
+        b"<fileId>3a1d4fd4106b82499b7c93442aa7dca4</fileId>"
+        b"<fileId>23eb425911143eadc4987a2b3e221c09</fileId>"
+        b"<fileId>abd6aa21e080470e22c4c8c9cb8cf2af</fileId>"
+        b"<fileId>01d21d1cc0a6c34885973d6cda08f537</fileId>"
+        b"<fileId>d6aed6fe40d471c011640a6781b4a648</fileId>"
+        b"<fileId>3c62d4a8c475524b7ecd3f4764eeed94</fileId>"
+        b"<fileId>084fe41db96ac651eb0b8b2e0b400de0</fileId>"
+        b"</files>"
         b"</reportDoneResponse>"
     )
     done = ReportDoneResponse.from_xml(xml)
-    assert done.report_id == 4564654
-    assert done.file_ids == [1, 2]
+    assert done.report_id == 250799407
+    assert done.file_ids == [
+        "3a1d4fd4106b82499b7c93442aa7dca4",
+        "23eb425911143eadc4987a2b3e221c09",
+        "abd6aa21e080470e22c4c8c9cb8cf2af",
+        "01d21d1cc0a6c34885973d6cda08f537",
+        "d6aed6fe40d471c011640a6781b4a648",
+        "3c62d4a8c475524b7ecd3f4764eeed94",
+        "084fe41db96ac651eb0b8b2e0b400de0",
+    ]
 
 
 def test_report_done_response_empty_files() -> None:
